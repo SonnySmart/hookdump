@@ -5,34 +5,42 @@
  *      Author: Administrator
  */
 
-#include "dump/dump.h"
-#include "cocos/CCData.h"
-#include <string>
-#include <time.h>
-#include <stdlib.h>
+#include "tool/define.h"
 
-const char *des_root = "/sdcard/Android/data/com.tc.tbnn";
-
-int (*old_luaLoadBuffer)(void * L, char ** a2, char *buffer, int len, char * path);
-int new_luaLoadBuffer(void * L, char ** a2, char *buffer, int len, char * path) {
-	LOGI("L:%x", L);
-	LOGI("a2:%s", *a2);
-	LOGI("buffer:%s", buffer);
-	LOGI("len:%d", len);
-	LOGI("path:%s", path);
-	return old_luaLoadBuffer(L, a2, buffer, len, path);
-}
+#define DUMP_LUA 1
+#define REPLACE_LUA 0
 
 int (*old_luaL_loadbuffer) (void *L, const char *buff, size_t len, const char *name);
 int new_luaL_loadbuffer (void *L, const char *buff, size_t len, const char *name) {
-	LOGI("buff:%x", buff);
-	LOGI("len:%d", len);
-	LOGI("name:%s", name);
 
-	char des[300] = { 0 };
-	sprintf(des, "%s/%s", des_root, name);
+	//LOGI("len:%d", len);
+	//LOGI("name:%s", name);
 
-	dump_write(des, buff, len);
+	const char *fullpath = get_sdcard_fullpath(name);
+	//LOGD("fullpath:%s", fullpath);
+
+#if DUMP_LUA
+	dump_write(fullpath, buff, len);
+#endif
+
+
+#if REPLACE_LUA
+	vector<string> r = {
+			"HeroFightUtil.lua"
+	};
+	void *out_buffer = NULL;
+	size_t out_len = 0;
+	if (replace_buffer(name, r, out_buffer, out_len) == 0) {
+		LOGE("buff_old:%x", buff);
+		LOGE("old_len:%d", len);
+		LOGE("buff_new:%x", out_buffer);
+		LOGE("out_len:%d", out_len);
+		if (out_buffer != NULL && out_len > 0) {
+			LOGE("call return old_luaL_loadbuffer");
+			return old_luaL_loadbuffer(L, (const char *)out_buffer, out_len, name);
+		}
+	}
+#endif
 
 	return old_luaL_loadbuffer(L, buff, len, name);
 }
@@ -50,31 +58,17 @@ unsigned char *xxtea_decrypt(unsigned char *data, unsigned int data_len, unsigne
 
 FILE *(*old_fopen)(const char *path, const char *mode);
 
-FILE *my_fopen(const char *path, const char *mode)
+FILE *new_fopen(const char *path, const char *mode)
 {
 	LOGI("path . %s mode . %s", path, mode);
     return old_fopen(path, mode);
 }
 
-int (*old_getDataFromFile)(Data *a1, std::string *a2, int a3);
-int new_getDataFromFile(Data *a1, std::string *a2, int a3) {
-
-	//LOGI("filename:%s", a2);
-	LOGI("a2:%s", (*a2).c_str());
-
-	int ret = old_getDataFromFile(a1, a2, a3);
-	LOGI("buffer:%d", (*a1).getSize());
-	return ret;
-}
-
 bool (*old_isCCZBuffer)(const unsigned char *buffer, ssize_t len);
 bool new_isCCZBuffer(const unsigned char *buffer, ssize_t len) {
-	//int index = rand();
-
-	char des[300] = { 0 };
-	sprintf(des, "%s/%x.png", des_root, buffer);
-	LOGI("des:%s", des);
-	dump_write(des, (const char *)buffer, len);
+	//const char *fullpath = get_sdcard_fullpath(name);
+	//LOGD("fullpath:%s", fullpath);
+	//dump_write(fullpath, (const char *)buffer, len);
 	//LOGI("buffer:%x", buffer);
 	//LOGI("len:%d", len);
 	return old_isCCZBuffer(buffer, len);
@@ -83,32 +77,26 @@ bool new_isCCZBuffer(const unsigned char *buffer, ssize_t len) {
 void cocos_entry(void *handle)
 {
 	void * symbol = NULL;
-//		symbol = dlsym(handle, (char *)"_ZN7cocos2d8LuaStack13luaLoadBufferEP9lua_StatePKciS4_");
-//		if (symbol)
-//		{
-//			LOGI("hook_symbol addr . %x", symbol);
-//			MSHookFunction(symbol, (void *)&new_luaLoadBuffer, (void **)&old_luaLoadBuffer);
-//		}
-//	symbol = dlsym(handle, (char *)"luaL_loadbuffer");
-//	if (symbol)
-//	{
-//		LOGI("hook_symbol addr . %x", symbol);
-//		MSHookFunction(symbol, (void *)&new_luaL_loadbuffer, (void **)&old_luaL_loadbuffer);
-//	}
+	symbol = dlsym(handle, (char *)"luaL_loadbuffer");
+	if (symbol)
+	{
+		LOGI("hook_symbol addr . %x", symbol);
+		MSHookFunction(symbol, (void *)&new_luaL_loadbuffer, (void **)&old_luaL_loadbuffer);
+	}
 //	symbol = dlsym(handle, (char *)"_Z13xxtea_decryptPhjS_jPj");
 //	if (symbol)
 //	{
 //		LOGI("hook_symbol addr . %x", symbol);
 //		MSHookFunction(symbol, (void *)&xxtea_decrypt, (void **)&old_xxtea_decrypt);
 //	}
-	symbol = dlsym(handle, (char *)"_ZN7cocos2d8ZipUtils11isCCZBufferEPKhi");
-	if (symbol)
-	{
-		LOGI("hook_symbol addr . %x", symbol);
-		MSHookFunction(symbol, (void *)&new_isCCZBuffer, (void **)&old_isCCZBuffer);
-	}
+//	symbol = dlsym(handle, (char *)"_ZN7cocos2d8ZipUtils11isCCZBufferEPKhi");
+//	if (symbol)
+//	{
+//		LOGI("hook_symbol addr . %x", symbol);
+//		MSHookFunction(symbol, (void *)&new_isCCZBuffer, (void **)&old_isCCZBuffer);
+//	}
 
-	//MSHookFunction(&fopen, &my_fopen, &old_fopen);
+	//MSHookFunction(&fopen, &new_fopen, &old_fopen);
 }
 
 

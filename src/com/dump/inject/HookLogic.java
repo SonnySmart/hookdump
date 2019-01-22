@@ -1,11 +1,9 @@
 package com.dump.inject;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 
-import android.R.integer;
+import android.R.string;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XposedBridge;
@@ -24,6 +22,8 @@ public class HookLogic implements IXposedHookLoadPackage {
      * 宿主程序的包名(允许多个),过滤无意义的包名,防止无意义的apk文件加载
      */
     public static List<String> hostAppPackages = new ArrayList<String>();
+    
+    static String mCurPackage;
 
     static {    	
         // TODO: Add the package name of application your want to hook!
@@ -32,18 +32,47 @@ public class HookLogic implements IXposedHookLoadPackage {
         hostAppPackages.add("com.tc.tbnn");  
         hostAppPackages.add("com.estoty.game2048"); 
         hostAppPackages.add("com.uchess.zzyl"); 
+        hostAppPackages.add("com.tencent.tmgp.hhw"); 
     }
     
 	static void LOGD(String msg) {
 		XposedBridge.log(msg);
 	}
 
+	// inject entry
 	@Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
-    	LOGD(loadPackageParam.packageName + " start .1");
+    	LOGD(loadPackageParam.packageName + " start .");
+    	
+    	mCurPackage = loadPackageParam.packageName;
 		
     	//注入so
 		System.load("/data/data/com.dump.inject/lib/libdump.so");
 		LOGD("so injected .");
+		
+		LOGD("str:" + native_hello());
     }
+	
+	// native func
+	public static native String native_hello();
+	
+	// native get packagename
+	public static String getPackageString() {
+		if (mCurPackage == null || mCurPackage.length() == 0) {
+			LOGD("mCurPackage is null .");
+			return null;
+		}
+		return mCurPackage;
+	}
+	
+	// native get sdcard path
+	public static String getSdcardDirString() {
+		final String rootString = "/sdcard/Android/data/";
+		String packString = getPackageString();
+		if (packString == null){
+			LOGD("getPackageString is null .");
+			return null;
+		}
+		return rootString + packString;
+	}
 }

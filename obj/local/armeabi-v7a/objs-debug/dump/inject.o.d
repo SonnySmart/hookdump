@@ -1,5 +1,5 @@
 obj/local/armeabi-v7a/objs-debug/dump/inject.o: jni/inject.cpp \
- jni/dump/dump.h \
+ jni/tool/define.h \
  D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h \
  D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/cdefs.h \
  D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/cdefs_elf.h \
@@ -55,10 +55,14 @@ obj/local/armeabi-v7a/objs-debug/dump/inject.o: jni/inject.cpp \
  D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/alloca.h \
  D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/strings.h \
  D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/memory.h \
- jni/dump/../SNativeHook/jni/Hooker.h \
- D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/dlfcn.h
+ D:/env/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/string \
+ D:/env/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/vector \
+ D:/env/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/algorithm \
+ jni/tool/../SNativeHook/jni/Hooker.h \
+ D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/dlfcn.h \
+ jni/tool/jnibridge.h jni/tool/dump.h
 
-jni/dump/dump.h:
+jni/tool/define.h:
 
 D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h:
 
@@ -170,6 +174,16 @@ D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/strings.h:
 
 D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/memory.h:
 
-jni/dump/../SNativeHook/jni/Hooker.h:
+D:/env/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/string:
+
+D:/env/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/vector:
+
+D:/env/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/algorithm:
+
+jni/tool/../SNativeHook/jni/Hooker.h:
 
 D:/env/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/dlfcn.h:
+
+jni/tool/jnibridge.h:
+
+jni/tool/dump.h:

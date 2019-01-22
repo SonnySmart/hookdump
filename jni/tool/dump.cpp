@@ -6,12 +6,12 @@
  */
 
 #include "dump.h"
+#include "define.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-//����������� android inject ���ڻ�ȡ��ַ
 void* get_remote_addr(int target_pid, const char* module_name, void* local_addr)
 {
     void* local_handle, *remote_handle;
@@ -31,7 +31,6 @@ void* get_remote_addr(int target_pid, const char* module_name, void* local_addr)
     return ret_addr;
 }
 
-//����������� android inject ���ڻ�ȡ��ַ
 void* get_module_base(int pid, const char* module_name)
 {
     FILE *fp;
@@ -64,13 +63,10 @@ void* get_module_base(int pid, const char* module_name)
     return (void *)addr;
 }
 
-//ͨ��so��ľ���·���ͺ��������ҵ��亯����ӳ���ַ
 void* lookup_symbol(char* libraryname,char* symbolname)
 {
-    //��ȡso��ľ��
     void *handle = dlopen(libraryname, RTLD_GLOBAL | RTLD_NOW);
     if (handle != NULL){
-        //����so�����ͷ�������������������ȡ������ַ
         void * symbol = dlsym(handle, symbolname);
         if (symbol != NULL){
             return symbol;
@@ -86,13 +82,12 @@ void* lookup_symbol(char* libraryname,char* symbolname)
     }
 }
 
-//�����༶Ŀ¼
-void mkdirs(char *muldir)
+void mkdirs(const std::string &dir)
 {
     int i,len;
-    char str[512];
-    strncpy(str, muldir, 512);
-    len=strlen(str);
+    len = dir.length();
+    char *str = (char *)malloc(len);
+    strcpy(str, dir.c_str());
     for( i=0; i<len; i++ )
     {
         if( str[i]=='/' )
@@ -109,65 +104,36 @@ void mkdirs(char *muldir)
     {
         mkdir( str, 0777 );
     }
+    free(str);
     return;
 }
 
-//�ַ�����ȡ
-char* substring(char* ch,int pos,int length)
-{
-    //�����ַ�ָ�� ָ�򴫵ݽ�����ch��ַ
-    char* pch=ch;
-    //ͨ��calloc������һ��length���ȵ��ַ����飬���ص����ַ�ָ�롣
-    char* subch=(char*)calloc(sizeof(char),length+1);
-    int i;
-    //ֻ����C99��forѭ���вſ�����������������д�����棬��߼����ԡ�
-    pch=pch+pos;
-    //��pchָ��ָ��posλ�á�
-    for(i=0;i<length;i++)
-    {
-        subch[i]=*(pch++);
-    //ѭ��������ֵ���顣
-    }
-    subch[length]='\0';//�����ַ�����������
-    return subch;       //���ط�����ַ������ַ��
-}
-
-//��������ַ���
-int rfind(const char*source ,const char* match)
-{
-    // for(int i=strlen(source);i>=0;i--)
-     for(int i=strlen(source)-strlen(match)-1;i>=0;i--) //ԭ���Ĵ����е�С���⡣
-     {
-           if(source[i]==match[0] && strncmp(source+i, match, strlen(match))==0) return i;
-     }
-      return -1;
-}
-
-//д���ļ�
-int dump_write(const char *path, const char *buff, const size_t len, bool write)
+int dump_write(const char *path, const char *buff, const size_t len)
 {
 	if (!buff || len <= 0)
 		return -1;
 
-	if (write && access(path, F_OK) == 0)
+	if (access(path, F_OK) == 0)
 		return -1;
 
-	//�������ļ��оʹ���
-	int i = rfind(path, "/");
-	if (i != -1) {
-		char *des_ = (char *)path;
-		char *dir = substring(des_, 0, i);
-		//LOGD("dir:%s", dir);
-		if (access(path, F_OK) != 0) {
+	if (strstr(path, ".lua") == NULL)
+		return -1;
+
+	std::string tmp(path);
+	std::size_t i = tmp.find_last_of("/");
+	if (i != std::string::npos)
+	{
+		std::string dir = tmp.substr(0, i);
+		if (access(dir.c_str(), F_OK) != 0) {
 			mkdirs(dir);
 		}
 	}
 
-	//д��Ŀ¼
 	FILE *fd = fopen(path, "wb");
 	if (fd) {
 		if (fwrite(buff, len, 1u, fd) > 0) {
 			LOGI("fwrite:%s", path);
+			fclose(fd);
 			return 0;
 		}
 		else {
@@ -177,6 +143,52 @@ int dump_write(const char *path, const char *buff, const size_t len, bool write)
 	}
 	else {
 		LOGE("fopen failed:%s", path);
+	}
+
+	return -1;
+}
+
+int replace_buffer(const char *name, const vector<string> &r, void *&out_buffer, size_t &out_len)
+{
+	if (strlen(name) == 0 || r.size() ==0)
+		return -1;
+
+	for(auto i = r.begin(); i != r.end(); ++i) {
+		const char *filename = (*i).c_str();
+
+		const char *fullpath = get_sdcard_fullpath(filename);
+
+		if (access(fullpath, F_OK) != 0 || strstr(name, filename) == NULL)
+			continue;
+
+		LOGE("check success path:%s", fullpath);
+
+		FILE *fd = NULL;
+		if ((fd = fopen(fullpath, "rb"))) {
+			fseek(fd, 0, SEEK_END);
+			size_t len = ftell(fd);
+			if (len <= 0) {
+				goto NEXT;
+			}
+			fseek(fd, 0, SEEK_SET);
+			void *buffer = malloc(len);
+
+			if (fread(buffer, 1u, len, fd) <= 0) {
+				goto NEXT;
+			}
+
+			LOGE("read buffer:%x", buffer);
+
+			out_buffer = buffer;
+			out_len = len;
+
+			fclose(fd);
+
+			return 0;
+		}
+	NEXT:
+		if (fd) fclose(fd);
+		continue;
 	}
 
 	return -1;
