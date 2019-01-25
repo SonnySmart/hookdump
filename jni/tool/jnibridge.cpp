@@ -10,56 +10,24 @@
 
 #define JNI_CLASS "com/dump/inject/HookLogic"
 
-static JNIEnv* env = NULL;
+static JavaVM* g_vm = NULL;
 static std::string g_package;
 static std::string g_sdcard_root;
 
-jmethodID getMethod(const char *method, const char *sig, jclass &jc)
-{
-	jmethodID jid = NULL;
-	if (env != NULL) {
-		jclass clazz;
-		clazz = env->FindClass(JNI_CLASS);
-		if (clazz != NULL) {
-			jc = clazz;
-			jid = env->GetStaticMethodID(clazz, method, sig);
-		}
-		else {
-			LOGE("getMethod jclass null .");
-		}
-	}
-	else {
-		LOGE("getMethod env null .");
-	}
-	return jid;
-}
+extern jboolean native_call_java(const char *method, const char *sig, std::string &ret);
 
 const char *getPackageString()
 {
-	char *ret = NULL;
-	jclass clazz = NULL;
-	jmethodID jid = getMethod(__FUNCTION__, "()Ljava/lang/String;", clazz);
-	if (jid != NULL && clazz != NULL) {
-		jstring js = (jstring)env->CallStaticObjectMethod(clazz, jid);
-		ret = (char *)env->GetStringUTFChars(js, 0);
-		env->ReleaseStringUTFChars(js, 0);
-		LOGD("ret:%s", ret);
-	}
-	return ret;
+	std::string ret("");
+	native_call_java(__FUNCTION__, "()Ljava/lang/String;", ret);
+	return ret.c_str();
 }
 
 const char *getSdcardDirString()
 {
-	char *ret = NULL;
-	jclass clazz = NULL;
-	jmethodID jid = getMethod(__FUNCTION__, "()Ljava/lang/String;", clazz);
-	if (jid != NULL && clazz != NULL) {
-		jstring js = (jstring)env->CallStaticObjectMethod(clazz, jid);
-		ret = (char *)env->GetStringUTFChars(js, 0);
-		env->ReleaseStringUTFChars(js, 0);
-		LOGD("ret:%s", ret);
-	}
-	return ret;
+	std::string ret("");
+	native_call_java(__FUNCTION__, "()Ljava/lang/String;", ret);
+	return ret.c_str();
 }
 
 const char *get_packge()
@@ -73,6 +41,42 @@ const char *get_sdcard_fullpath(const char *name)
 		return (g_sdcard_root).c_str();
 	}
 	return (g_sdcard_root + "/" + name).c_str();
+}
+
+jboolean native_call_java(const char *method, const char *sig, std::string &ret)
+{
+	JNIEnv *env  =  NULL;
+	jclass clazz = NULL;
+	jmethodID mid = NULL;
+
+	if (g_vm == NULL)
+		return JNI_FALSE;
+
+	if ( g_vm->AttachCurrentThread(&env, NULL) != JNI_OK) {
+		LOGE("native_call_java AttachCurrentThread != JNI_OK");
+		return JNI_FALSE;
+	}
+
+	if ((clazz = env->FindClass(JNI_CLASS)) == NULL) {
+		LOGE("native_call_java clazz null");
+		return JNI_FALSE;
+	}
+
+	if ((mid = env->GetStaticMethodID( clazz, method, sig)) == NULL) {
+		LOGE("native_call_java mid null");
+		return JNI_FALSE;
+	}
+
+	jstring js = (jstring)env->CallStaticObjectMethod(clazz, mid);
+	char *str = (char *)env->GetStringUTFChars(js, 0);
+	ret = str;
+	env->ReleaseStringUTFChars(js, 0);
+
+	//destory
+	//env->DeleteLocalRef(clazz);
+	//g_vm->DetachCurrentThread();
+
+	return JNI_TRUE;
 }
 
 JNIEXPORT jstring JNICALL native_hello(JNIEnv *env, jclass clazz)
@@ -114,13 +118,14 @@ static int registerNatives(JNIEnv* env)
     return JNI_TRUE;
 }
 
-//jint (*old_JNI_OnLoad)(JavaVM *vm, void *reserved);
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 {
-	jint result = -1;
+	g_vm = vm;
+
+	JNIEnv *env = NULL;
 
 	if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-		return -1;
+		return JNI_ERR;
 	}
 	assert(env != NULL);
 
@@ -128,22 +133,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	if (!registerNatives(env)) {
 		LOGE("JNI_OnLoad registerNatives FALSE");
-		return -1;
+		return JNI_ERR;
 	}
-	/* success -- return valid version number */
-	result = JNI_VERSION_1_4;
 
-	return result;
+	return JNI_VERSION_1_4;
 }
-
-//void jni_entry(void *handle)
-//{
-//	void * symbol = NULL;
-//	symbol = dlsym(handle, (char *)"JNI_OnLoad");
-//	if (symbol)
-//	{
-//		LOGI("hook_symbol JNI_OnLoad addr . %x", symbol);
-//		MSHookFunction(symbol, (void *)&new_JNI_OnLoad, (void **)&old_JNI_OnLoad);
-//	}
-//}
 

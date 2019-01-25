@@ -3,7 +3,7 @@ package com.dump.inject;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.R.string;
+import com.dump.log.DumpLog;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XposedBridge;
@@ -23,6 +23,8 @@ public class HookLogic implements IXposedHookLoadPackage {
      */
     public static List<String> hostAppPackages = new ArrayList<String>();
     
+    public String apkAbsoluteString;
+    
     static String mCurPackage;
 
     static {    	
@@ -33,10 +35,20 @@ public class HookLogic implements IXposedHookLoadPackage {
         hostAppPackages.add("com.estoty.game2048"); 
         hostAppPackages.add("com.uchess.zzyl"); 
         hostAppPackages.add("com.tencent.tmgp.hhw"); 
+        hostAppPackages.add("com.tencent.game.SSGame");
+        hostAppPackages.add("com.next.netcraft");
+        hostAppPackages.add("com.tencent.tmgp.dnf");
+        
     }
     
 	static void LOGD(String msg) {
 		XposedBridge.log(msg);
+		//DumpLog.LOGD(msg);
+	}
+	
+	public void setApkAbsoluteString(String adbString) {
+		apkAbsoluteString = adbString;
+		LOGD("setApkAbsoluteString:" + apkAbsoluteString);
 	}
 
 	// inject entry
@@ -47,7 +59,7 @@ public class HookLogic implements IXposedHookLoadPackage {
     	mCurPackage = loadPackageParam.packageName;
 		
     	//注入so
-		System.load("/data/data/com.dump.inject/lib/libdump.so");
+		System.load("/data/data/com.dump.inject/lib/libinject.so");
 		LOGD("so injected .");
 		
 		LOGD("str:" + native_hello());
@@ -74,5 +86,9 @@ public class HookLogic implements IXposedHookLoadPackage {
 			return null;
 		}
 		return rootString + packString;
+	}
+	
+	public static String getAssetString() {		
+		return null;
 	}
 }

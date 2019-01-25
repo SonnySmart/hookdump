@@ -108,7 +108,7 @@ void mkdirs(const std::string &dir)
     return;
 }
 
-int dump_write(const char *path, const char *buff, const size_t len)
+int dump_write(const char *path, const char *buff, const size_t &len)
 {
 	if (!buff || len <= 0)
 		return -1;
@@ -116,7 +116,9 @@ int dump_write(const char *path, const char *buff, const size_t len)
 	if (access(path, F_OK) == 0)
 		return -1;
 
-	if (strstr(path, ".lua") == NULL)
+	if (strstr(path, ".lua") == NULL &&
+			strstr(path, ".dll") == NULL
+			)
 		return -1;
 
 	std::string tmp(path);
@@ -161,23 +163,27 @@ int replace_buffer(const char *name, const vector<string> &r, void *&out_buffer,
 		if (access(fullpath, F_OK) != 0 || strstr(name, filename) == NULL)
 			continue;
 
-		LOGE("check success path:%s", fullpath);
+		LOGI("check success path:%s", fullpath);
 
 		FILE *fd = NULL;
 		if ((fd = fopen(fullpath, "rb"))) {
 			fseek(fd, 0, SEEK_END);
 			size_t len = ftell(fd);
 			if (len <= 0) {
-				goto NEXT;
+				fclose(fd);
+				LOGE("file len <= 0");
+				continue;
 			}
 			fseek(fd, 0, SEEK_SET);
 			void *buffer = malloc(len);
 
 			if (fread(buffer, 1u, len, fd) <= 0) {
-				goto NEXT;
+				fclose(fd);
+				LOGE("file fread <= 0");
+				continue;
 			}
 
-			LOGE("read buffer:%x", buffer);
+			LOGI("read buffer:%x", buffer);
 
 			out_buffer = buffer;
 			out_len = len;
@@ -186,9 +192,6 @@ int replace_buffer(const char *name, const vector<string> &r, void *&out_buffer,
 
 			return 0;
 		}
-	NEXT:
-		if (fd) fclose(fd);
-		continue;
 	}
 
 	return -1;

@@ -13,11 +13,10 @@
 int (*old_luaL_loadbuffer) (void *L, const char *buff, size_t len, const char *name);
 int new_luaL_loadbuffer (void *L, const char *buff, size_t len, const char *name) {
 
-	//LOGI("len:%d", len);
-	//LOGI("name:%s", name);
+	LOGI("len:%d", len);
+	LOGI("name:%s", name);
 
 	const char *fullpath = get_sdcard_fullpath(name);
-	//LOGD("fullpath:%s", fullpath);
 
 #if DUMP_LUA
 	dump_write(fullpath, buff, len);
@@ -26,7 +25,8 @@ int new_luaL_loadbuffer (void *L, const char *buff, size_t len, const char *name
 
 #if REPLACE_LUA
 	vector<string> r = {
-			"HeroFightUtil.lua"
+			"SPEMainCtrl.lua",
+			"ActivityConfigUtil.lua"
 	};
 	void *out_buffer = NULL;
 	size_t out_len = 0;
@@ -77,7 +77,11 @@ bool new_isCCZBuffer(const unsigned char *buffer, ssize_t len) {
 void cocos_entry(void *handle)
 {
 	void * symbol = NULL;
-	symbol = dlsym(handle, (char *)"luaL_loadbuffer");
+	//cocos lua
+	symbol = dlsym(handle, "luaL_loadbuffer");
+	//unity lua
+	if (symbol == NULL)
+		dlsym(handle, "xluaL_loadbuffer");
 	if (symbol)
 	{
 		LOGI("hook_symbol addr . %x", symbol);

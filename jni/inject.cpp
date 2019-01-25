@@ -7,6 +7,7 @@
 
 #include "tool/define.h"
 
+extern void libc_entry(void *handle);
 extern void cocos_entry(void *handle);
 extern void unity_entry(void *handle);
 
@@ -18,14 +19,25 @@ void* new_dlopen(const char* filename, int myflags)
     {
     	LOGD("so:%s", filename);
 
+    	if (strstr(filename, "libc.so"))
+    	{
+    		//libc entry
+    		//LOGE("libc_entry");
+    		//libc_entry(handle);
+    	}
+
     	if (strstr(filename, "libcocos2dlua.so") ||
-    			strstr(filename, "libgame.so"))
+    			strstr(filename, "libgame.so") ||
+    			strstr(filename, "libCEGUILuaScriptModule-0.so")
+    			//strstr(filename, "libxlua.so")
+    			)
     	{
     		LOGE("cocos_entry");
     		cocos_entry(handle);
     	}
     	if (strstr(filename, "libmono.so") ||
-    			strstr(filename, "libil2cpp.so"))
+    			strstr(filename, "libil2cpp.so")
+    			)
     	{
     		//to unity
     		LOGE("unity_entry");

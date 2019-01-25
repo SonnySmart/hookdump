@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -67,11 +68,13 @@ public class HookLoader implements IXposedHookLoadPackage {
         File apkFile=findApkFile(context,modulePackageName);
         if (apkFile==null){
             throw new RuntimeException("寻找模块apk失败");
-        }
+        }      
         //加载指定的hook逻辑处理类，并调用它的handleHook方法
         PathClassLoader pathClassLoader = new PathClassLoader(apkFile.getAbsolutePath(), ClassLoader.getSystemClassLoader());
         Class<?> cls = Class.forName(handleHookClass, true, pathClassLoader);
         Object instance = cls.newInstance();
+        Method methodA = cls.getDeclaredMethod("setApkAbsoluteString", String.class);
+        methodA.invoke(instance, apkFile.getAbsolutePath());
         Method method = cls.getDeclaredMethod(handleHookMethod, XC_LoadPackage.LoadPackageParam.class);
         method.invoke(instance, loadPackageParam);
     }
