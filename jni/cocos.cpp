@@ -79,9 +79,13 @@ void cocos_entry(void *handle)
 	void * symbol = NULL;
 	//cocos lua
 	symbol = dlsym(handle, "luaL_loadbuffer");
-	//unity lua
+	//slua
 	if (symbol == NULL)
-		dlsym(handle, "xluaL_loadbuffer");
+		symbol = dlsym(handle, "puaL_loadbuffer");
+	//xlua
+	if (symbol == NULL)
+		symbol = dlsym(handle, "xluaL_loadbuffer");
+
 	if (symbol)
 	{
 		LOGI("hook_symbol addr . %x", symbol);

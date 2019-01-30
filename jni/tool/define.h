@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <pthread.h>
 #include "../SNativeHook/jni/Hooker.h"
 #include "jnibridge.h"
 #include "dump.h"
@@ -31,5 +32,13 @@ using namespace std;
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+#define Hook(handle, __func__) \
+		void *symbol = dlsym(handle, __func__); \
+		if (symbol) \
+		{ \
+			LOGI("hook_symbol %s", __func__); \
+			MSHookFunction(symbol, (void *)&new_###__func__, (void **)&old_###__func__); \
+		} \
 
 #endif /* DEFINE_H_ */

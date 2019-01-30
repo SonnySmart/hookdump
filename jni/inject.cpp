@@ -7,49 +7,69 @@
 
 #include "tool/define.h"
 
-extern void libc_entry(void *handle);
 extern void cocos_entry(void *handle);
 extern void unity_entry(void *handle);
+extern void tersafe_entry(void *handle);
+
+size_t n_unity_load_count = 0;
+size_t n_cocos_load_count = 0;
+size_t n_tersafe_load_count = 0;
 
 void* (*old_dlopen)(const char* filename, int myflags);
 void* new_dlopen(const char* filename, int myflags)
 {
+//	if (strstr(filename, "libtersafe"))
+//	{
+//		LOGE("libtersafe return self os");
+//		return old_dlopen("/data/data/com.dump.inject/lib/libinject.so", myflags);
+//	}
+
     void *handle = old_dlopen(filename, myflags);
     if (handle)
     {
     	LOGD("so:%s", filename);
 
-    	if (strstr(filename, "libc.so"))
-    	{
-    		//libc entry
-    		//LOGE("libc_entry");
-    		//libc_entry(handle);
-    	}
-
+    	do {
     	if (strstr(filename, "libcocos2dlua.so") ||
     			strstr(filename, "libgame.so") ||
-    			strstr(filename, "libCEGUILuaScriptModule-0.so")
-    			//strstr(filename, "libxlua.so")
+    			strstr(filename, "libCEGUILuaScriptModule-0.so") ||
+    			strstr(filename, "libslua.so") ||
+    			strstr(filename, "libxlua.so")
     			)
     	{
+    		if (n_cocos_load_count++ > 0) break;
+    		//to cocos
     		LOGE("cocos_entry");
     		cocos_entry(handle);
     	}
-    	if (strstr(filename, "libmono.so") ||
-    			strstr(filename, "libil2cpp.so")
+    	if ((strstr(filename, "libmono.so") ||
+    			strstr(filename, "libil2cpp.so"))
     			)
     	{
+    		if (n_unity_load_count++ > 0) break;
     		//to unity
     		LOGE("unity_entry");
     		unity_entry(handle);
     	}
+    	if (strstr(filename, "libtersafe"))
+    	{
+    		if (n_tersafe_load_count++ > 0) break;
+    		LOGE("tersafe_entry");
+    		tersafe_entry(handle);
+    	}
+    	} while (false);
     }
+
     return handle;
 }
 
 __attribute__((__constructor__)) void _MSInitialize()
 {
 	LOGD("_MSInitialize .");
+
+	n_unity_load_count = 0;
+	n_cocos_load_count = 0;
+	n_tersafe_load_count = 0;
 
 	void *dlopen_addr = get_remote_addr(getpid(), "/system/bin/linker", (void *)dlopen);
 	LOGI("[+] dlopen_addr: [%x]", dlopen_addr);

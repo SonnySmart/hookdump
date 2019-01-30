@@ -105,7 +105,6 @@ void mkdirs(const std::string &dir)
         mkdir( str, 0777 );
     }
     free(str);
-    return;
 }
 
 int dump_write(const char *path, const char *buff, const size_t &len)
@@ -116,6 +115,7 @@ int dump_write(const char *path, const char *buff, const size_t &len)
 	if (access(path, F_OK) == 0)
 		return -1;
 
+	//dump .dll .lua
 	if (strstr(path, ".lua") == NULL &&
 			strstr(path, ".dll") == NULL
 			)

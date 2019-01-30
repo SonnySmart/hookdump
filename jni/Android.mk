@@ -10,7 +10,8 @@ LOCAL_SRC_FILES := tool/dump.cpp \
 					inject.cpp \
 					cocos.cpp \
 					unity.cpp \
-					libc.cpp
+					libc.cpp \
+					tersafe.cpp
 					
 #LOCAL_LDLIBS := -lm -llog
 #LOCAL_CFLAGS := -std=c99
