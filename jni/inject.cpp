@@ -18,11 +18,11 @@ size_t n_tersafe_load_count = 0;
 void* (*old_dlopen)(const char* filename, int myflags);
 void* new_dlopen(const char* filename, int myflags)
 {
-//	if (strstr(filename, "libtersafe"))
-//	{
-//		LOGE("libtersafe return self os");
-//		return old_dlopen("/data/data/com.dump.inject/lib/libinject.so", myflags);
-//	}
+	if (strstr(filename, "libtersafe"))
+	{
+		LOGE("libtersafe return self os");
+		return old_dlopen("/data/data/com.dump.inject/lib/libtersafe.so", myflags);
+	}
 
     void *handle = old_dlopen(filename, myflags);
     if (handle)

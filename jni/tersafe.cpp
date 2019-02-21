@@ -6,21 +6,9 @@
  */
 #include "tool/define.h"
 
-void (*old_tss_log_str);
-void new_tss_log_str()
-{
-
-}
-
-void tss_log_str(void *handle) {
-	Hook(handle, __FUNCTION__);
-}
-
 void tersafe_entry(void *handle)
 {
 	LOGI("handle addr[%x]", handle);
-
-	tss_log_str(handle);
 }
 
 
