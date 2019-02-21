@@ -113,13 +113,13 @@ int dump_write(const char *path, const char *buff, const size_t &len)
 		return -1;
 
 	if (access(path, F_OK) == 0)
-		return -1;
+		return -2;
 
 	//dump .dll .lua
 	if (strstr(path, ".lua") == NULL &&
 			strstr(path, ".dll") == NULL
 			)
-		return -1;
+		return -3;
 
 	std::string tmp(path);
 	std::size_t i = tmp.find_last_of("/");
@@ -147,7 +147,7 @@ int dump_write(const char *path, const char *buff, const size_t &len)
 		LOGE("fopen failed:%s", path);
 	}
 
-	return -1;
+	return -4;
 }
 
 int replace_buffer(const char *name, const vector<string> &r, void *&out_buffer, size_t &out_len)

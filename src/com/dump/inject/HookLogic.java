@@ -38,8 +38,9 @@ public class HookLogic implements IXposedHookLoadPackage {
         hostAppPackages.add("com.tencent.game.SSGame");
         hostAppPackages.add("com.next.netcraft");
         hostAppPackages.add("com.tencent.tmgp.dnf");
-        hostAppPackages.add("com.tencent.tmgp.sgame");
-        
+        hostAppPackages.add("com.tencent.tmgp.sgame");        
+        hostAppPackages.add("com.tencent.tmgp.speedmobile");
+        hostAppPackages.add("com.tencent.hyrzol");
     }
     
 	static void LOGD(String msg) {

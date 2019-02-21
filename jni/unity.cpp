@@ -7,7 +7,7 @@
 #include "tool/define.h"
 #include "unity/define.h"
 
-#define DUMP_DLL 0
+#define DUMP_DLL 1
 #define REPLACE_DLL 0
 #define INJECT_DLL 0
 
@@ -37,13 +37,14 @@ void new_mono_image_init(MonoImage *image)
 	if (strstr(image->name, "Assembly-CSharp.dll") ||
 			strstr(image->name, "Assembly-CSharp-firstpass.dll")
 			) {
-		//LOGI("mono_image_init raw_data:%x", image->raw_data);
-		//LOGI("mono_image_init raw_data_len:%d", image->raw_data_len);
+		LOGI("mono_image_init raw_data:%x", image->raw_data);
+		LOGI("mono_image_init raw_data_len:%d", image->raw_data_len);
 
 		const char *fullpath = get_sdcard_fullpath(image->name);
 
 #if DUMP_DLL
-		dump_write(fullpath, image->raw_data, image->raw_data_len);
+		int ret = dump_write(fullpath, image->raw_data, image->raw_data_len);
+		LOGE("dump_write ret = %d", ret);
 #endif
 	}
 
