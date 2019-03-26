@@ -11,7 +11,8 @@ LOCAL_SRC_FILES := tool/dump.cpp \
 					cocos.cpp \
 					unity.cpp \
 					libc.cpp \
-					tersafe.cpp
+					tersafe.cpp \
+					mqm.cpp
 					
 #LOCAL_LDLIBS := -lm -llog
 #LOCAL_CFLAGS := -std=c99
