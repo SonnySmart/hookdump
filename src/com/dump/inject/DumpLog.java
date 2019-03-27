@@ -1,4 +1,4 @@
-package com.dump.log;
+package com.dump.inject;
 
 import android.content.Context;
 

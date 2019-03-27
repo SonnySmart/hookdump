@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <pthread.h>
 #include "../SNativeHook/jni/Hooker.h"
-#include "../libxhook/jni/xhook.h"
 #include "jnibridge.h"
 #include "dump.h"
 

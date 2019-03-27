@@ -1,11 +1,9 @@
-package com.dump.main;
+package com.dump.inject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dump.inject.HookLogic;
 import com.dump.inject.R;
-import com.dump.log.DumpLog;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 

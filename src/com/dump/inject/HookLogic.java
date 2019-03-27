@@ -2,9 +2,6 @@ package com.dump.inject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.dump.log.DumpLog;
-
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -21,15 +18,20 @@ public class HookLogic implements IXposedHookLoadPackage {
     /**
      * 宿主程序的包名(允许多个),过滤无意义的包名,防止无意义的apk文件加载
      */
-    public static List<String> hostAppPackages = new ArrayList<String>();
+    public List<String> hostAppPackages = new ArrayList<String>();
     
     public String apkAbsoluteString;
     
     static String mCurPackage;
-
-    static {    	
-        // TODO: Add the package name of application your want to hook!
-        hostAppPackages.add("com.game.qeylyx");
+    
+	static void LOGD(String msg) {
+		XposedBridge.log(msg);
+		//DumpLog.LOGD(msg);
+	}
+	
+	private void setHostAppPackages()
+	{
+		hostAppPackages.add("com.game.qeylyx");
         hostAppPackages.add("com.mengxiangyuele.n1");
         hostAppPackages.add("com.tc.tbnn");  
         hostAppPackages.add("com.estoty.game2048"); 
@@ -41,23 +43,21 @@ public class HookLogic implements IXposedHookLoadPackage {
         hostAppPackages.add("com.tencent.tmgp.sgame");       
         hostAppPackages.add("com.cyjh.mobileanjian");
         hostAppPackages.add("com.cyjh.gundam");
-        hostAppPackages.add("com.jhjljljijgjgjgjgjmjljk.com.anjiandemo.test");
-    }
-    
-	static void LOGD(String msg) {
-		XposedBridge.log(msg);
-		//DumpLog.LOGD(msg);
 	}
 	
-	public void setApkAbsoluteString(String adbString) {
+	public void setApkAbsoluteString(String adbString) throws Exception {
 		apkAbsoluteString = adbString;
-		LOGD("setApkAbsoluteString:" + apkAbsoluteString);
+		//LOGD("setApkAbsoluteString:" + apkAbsoluteString);
+		
+		setHostAppPackages();
 	}
 
 	// inject entry
 	@Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
-    	LOGD(loadPackageParam.packageName + " start .");
+    
+		if (!hostAppPackages.contains(loadPackageParam.packageName))
+			return;
     	
     	mCurPackage = loadPackageParam.packageName;
 		
@@ -93,5 +93,5 @@ public class HookLogic implements IXposedHookLoadPackage {
 	
 	public static String getAssetString() {		
 		return null;
-	}
+	} 
 }

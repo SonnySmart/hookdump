@@ -91,12 +91,12 @@ void cocos_entry(void *handle)
 		LOGI("hook_symbol addr . %x", symbol);
 		MSHookFunction(symbol, (void *)&new_luaL_loadbuffer, (void **)&old_luaL_loadbuffer);
 	}
-//	symbol = dlsym(handle, (char *)"_Z13xxtea_decryptPhjS_jPj");
-//	if (symbol)
-//	{
-//		LOGI("hook_symbol addr . %x", symbol);
-//		MSHookFunction(symbol, (void *)&xxtea_decrypt, (void **)&old_xxtea_decrypt);
-//	}
+	symbol = dlsym(handle, (char *)"_Z13xxtea_decryptPhjS_jPj");
+	if (symbol)
+	{
+		LOGI("hook_symbol addr . %x", symbol);
+		MSHookFunction(symbol, (void *)&xxtea_decrypt, (void **)&old_xxtea_decrypt);
+	}
 //	symbol = dlsym(handle, (char *)"_ZN7cocos2d8ZipUtils11isCCZBufferEPKhi");
 //	if (symbol)
 //	{

@@ -10,8 +10,6 @@ LOCAL_SRC_FILES := tool/dump.cpp \
 					inject.cpp \
 					cocos.cpp \
 					unity.cpp \
-					libc.cpp \
-					tersafe.cpp \
 					mqm.cpp
 					
 #LOCAL_LDLIBS := -lm -llog
@@ -21,8 +19,7 @@ LOCAL_ARM_MODE := arm
 LOCAL_SHARED_LIBRARIES := liblog libcutils
 
 LOCAL_LDLIBS := $(LOCAL_PATH)/SNativeHook/obj/local/$(TARGET_ARCH_ABI)/libHooker.a \
-				$(LOCAL_PATH)/SNativeHook/obj/local/$(TARGET_ARCH_ABI)/libstdc++.a \
-				$(LOCAL_PATH)/libxhook/obj/local/$(TARGET_ARCH_ABI)/libxhook.a
+				$(LOCAL_PATH)/SNativeHook/obj/local/$(TARGET_ARCH_ABI)/libstdc++.a
 LOCAL_LDLIBS += -L$(SYSROOT)/usr/lib -llog
 include $(BUILD_SHARED_LIBRARY)
 

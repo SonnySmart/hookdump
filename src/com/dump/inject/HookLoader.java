@@ -41,7 +41,8 @@ public class HookLoader implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
-        if (HookLogic.hostAppPackages.contains(loadPackageParam.packageName)) {
+        //if (HookLogic.hostAppPackages.contains(loadPackageParam.packageName)) 
+        {
             //将loadPackageParam的classloader替换为宿主程序Application的classloader,解决宿主程序存在多个.dex文件时,有时候ClassNotFound的问题
             XposedHelpers.findAndHookMethod(Application.class, "attach", Context.class, new XC_MethodHook() {
                 @Override
@@ -73,8 +74,8 @@ public class HookLoader implements IXposedHookLoadPackage {
         PathClassLoader pathClassLoader = new PathClassLoader(apkFile.getAbsolutePath(), ClassLoader.getSystemClassLoader());
         Class<?> cls = Class.forName(handleHookClass, true, pathClassLoader);
         Object instance = cls.newInstance();
-        Method methodA = cls.getDeclaredMethod("setApkAbsoluteString", String.class);
-        methodA.invoke(instance, apkFile.getAbsolutePath());
+        Method setApkAbsoluteString = cls.getDeclaredMethod("setApkAbsoluteString", String.class);
+        setApkAbsoluteString.invoke(instance, apkFile.getAbsolutePath());
         Method method = cls.getDeclaredMethod(handleHookMethod, XC_LoadPackage.LoadPackageParam.class);
         method.invoke(instance, loadPackageParam);
     }
